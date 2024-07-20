@@ -1,4 +1,4 @@
-import db.conf as conf
+import conf as conf
 import psycopg2
 from sys import exit;
 
@@ -16,14 +16,16 @@ def connect() :
 def clear_month(list_of_colum):
     try:
         with db.cursor() as curr:
-            curr.execute('UPDATE main SET hour_bonus = 0, bonus_sum = 0;')
+            curr.execute('ALTER TABLE main DISABLE TRIGGER hbonus_edit;')
+            curr.execute('UPDATE main SET hour_bonus = 0, bonus_sum = 0,completed_hours = 0;')
+            curr.execute('ALTER TABLE main ENABLE TRIGGER hbonus_edit;')
             curr.execute('UPDATE variable SET var = 0 WHERE id = 2;')
 
             for i in list_of_colum:
-                if i[len(i) - 1] == 't':
-                    curr.execute(f'UPDATE main SET {i} = 0;')
-                elif i[len(i) - 1] == 'n':
-                    curr.execute(f'UPDATE main SET {i} = NULL;')
+                if i[0][len(i[0]) - 1] == 'n':
+                    curr.execute(f'UPDATE main SET {i[0]} = 0;')
+                elif i[0][len(i[0]) - 1] == 't':
+                    curr.execute(f'UPDATE main SET {i[0]} = NULL;')
     except Exception as e:
         #need print
         db.rollback()
@@ -169,3 +171,32 @@ def check_fond() -> int:
         #need print
         return -1
     return sum_f - max_f
+
+
+
+#SEND MAIL
+def get_persons_list(info) -> list:
+    res = []
+    try:
+        with db.cursor() as curr:
+            curr.execute('SELECT * FROM main WHERE pers_id = %s',(info,))
+            res = curr.fetchone()
+        if res == None:
+            return [-1]
+    except Exception as e:
+        #need print
+        return [-1]
+    return res
+
+def list_of_column() -> list:
+    res = []
+    try:
+        with db.cursor() as curr:
+            curr.execute('SELECT column_name FROM information_schema.columns WHERE table_name = %s ORDER BY ordinal_position;',('main',))
+            res = curr.fetchall()
+        if res == None:
+            return [-1]
+    except Exception as e:
+        #need print
+        return [-1]
+    return res

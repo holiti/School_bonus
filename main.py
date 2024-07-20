@@ -1,4 +1,5 @@
 import db.postgredb as db
+import mail_newsletter as mail
 import GUI.tinterface as gui
 from GUI.tinterface import message,clear_terminal
 
@@ -21,6 +22,7 @@ def change_all():
             message(':(',0)
         else:
             message(':)',0)
+    message('',1)
 
 def change_comp_hour():
     while 1:
@@ -66,6 +68,7 @@ def big_input(func,mes):
             message(':(',0)
         else:
             message(':)',0)
+    message('',1)
 
 def add_del(sub, func1, func2, mes1, mes2):
     while 1:
@@ -112,7 +115,7 @@ def cast_month():
                     message('Ощибка при изменении :(',2)
                 else:
                     message('Фонд изменен :)',1)
-                    overload = max(0,db.check_fond())
+                overload = max(0,db.check_fond())
             case '6':
                 break
             case _:
@@ -126,8 +129,75 @@ def backup_month():
 
 
 #SEND REPORT
+def convert_list(info_list,column_list) -> str:
+    res = info_list[1] + '\n' + f'Норма часов: {info_list[3]} Выполнено: {info_list[4]} Получено: {info_list[5]} руб.\n'
+    for i in range(7,len(column_list),2):
+        res += f'{column_list[i][0][:len(column_list[i][0]) - 1]}: {info_list[i]} руб. Примечание: {info_list[i + 1]}\n'     
+    res += f'Всего: {info_list[6]} руб.'
+    return res
+
+def send_mail(pers_id):
+    if pers_id < 1:
+        return 1
+        
+    info_list = db.get_persons_list(pers_id)
+    if info_list[0] == -1:
+        return 1
+            
+    column_list = db.list_of_column()
+    if column_list[0] == -1:
+        return 1
+
+    if mail.send_mail(info_list[2],convert_list(info_list,column_list)) == 1:
+        return 1
+    return 0
+
+def send_one():
+    clear_terminal()
+    gui.hinp('Введите ФИО работника')
+
+    while 1:
+        s = gui.input_one('')
+        if s == 'end':
+            break
+        pers_id = db.exist_person(convert(s))
+        if send_mail(pers_id) == 1:
+            message(':(',0)
+        else:
+            message(':)',0)
+    message('',1)
+
+def send_all():
+    clear_terminal()
+    message('Идет отправка...',0)
+    pers_list = db.list_of_person()
+
+    if len(pers_list) == 1 and pers_list[0] == -1:
+        message(':(',0)
+
+    for i in pers_list:
+        stat = None
+        if send_mail(i[0]) == 1:
+            stat = ':('
+        else:
+            stat = ':)'
+        message(i[1] + ' ' + stat,0)
+    message('\nОтправка завершена!!',2)
+
 def send_report():
-    pass
+    while 1:
+        clear_terminal()
+        ch = gui.send_report_menu()
+
+        match ch:
+            case '1':
+                send_one()
+            case '2':
+                send_all()
+            case '3':
+                break
+            case _:
+                gui.not_choise()
 
 
 
@@ -149,7 +219,8 @@ def main():
                 backup_month()
             case '4':
                 clear_terminal()
-                if db.clear_month() == 1:
+                ls = db.list_of_column()
+                if db.clear_month(ls[7:]) == 1:
                     message('Не удалось очистить месяц... :(',2)
                 else:
                     message('Месяц очищен! :)',1)

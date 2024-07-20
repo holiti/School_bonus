@@ -1,0 +1,5 @@
+db_user = 'sbonus_admin'
+db_password = '4567123abe'
+db_name = 'school_bonus'
+db_host = 'localhost'
+db_port = '5432'

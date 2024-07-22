@@ -5,4 +5,6 @@ db_host = 'localhost'
 db_port = '5432'
 
 main_mail = 'saaliaksei@gmail.com'
-main_password = ''
+main_password = 'qsci klia cjec wbxw'
+
+main_path = '/var/lib/postgresql/main_table.csv'

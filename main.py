@@ -1,6 +1,7 @@
 import db.postgredb as db
 import mail_newsletter as mail
 import GUI.tinterface as gui
+from conf import main_path
 from GUI.tinterface import message,clear_terminal
 
 overload = 0
@@ -58,7 +59,7 @@ def convert(s) -> tuple:
 #ADD DELETE
 def big_input(func,mes):
     clear_terminal()
-    gui.hinp(mes)
+    gui.hinp(mes + '\n')
 
     while 1:
         s = gui.input_one('')
@@ -68,7 +69,6 @@ def big_input(func,mes):
             message(':(',0)
         else:
             message(':)',0)
-    message('',1)
 
 def add_del(sub, func1, func2, mes1, mes2):
     while 1:
@@ -122,9 +122,54 @@ def cast_month():
                 gui.not_choise()
 
 
+
 #BACK UP
+def update_path():
+    clear_terminal()
+    new_path = gui.input_one('Введите новый путь: ') + '/'
+
+    if db.change_path((new_path,)) == 1:
+        message(':(',2)
+    else:
+        message(':)',2)
+
+def back_up():
+    clear_terminal()
+    file_name = gui.input_one('Введите имя файла: ') + '.csv'
+    var_list = db.get_var_list()
+    columns = ','.join(db.list_of_column()[1:])
+
+    if var_list == None or len(columns) == 0 or db.back_up(columns) == 1:
+        message(':(',2)
+        return
+    
+    try:
+        with open(main_path,'r') as file:
+            lines = file.readlines()
+        with open(var_list[2][1] + file_name,'w') as file:
+            file.write(columns + '\n')
+            file.writelines(lines)
+            file.write(f'{var_list[0][0]},{var_list[1][0]}')
+    except Exception as e:
+        print(e)
+        message(':(',2)
+        return
+    message(':)',1)
+
 def backup_month():
-    pass
+    while 1:
+        clear_terminal()
+        ch = gui.back_up_menu()
+
+        match ch:
+            case '1':
+                back_up()
+            case '2':
+                update_path()
+            case '3':
+                break
+            case _:
+                gui.not_choise()
 
 
 
@@ -132,7 +177,7 @@ def backup_month():
 def convert_list(info_list,column_list) -> str:
     res = info_list[1] + '\n' + f'Норма часов: {info_list[3]} Выполнено: {info_list[4]} Получено: {info_list[5]} руб.\n'
     for i in range(7,len(column_list),2):
-        res += f'{column_list[i][0][:len(column_list[i][0]) - 1]}: {info_list[i]} руб. Примечание: {info_list[i + 1]}\n'     
+        res += f'{column_list[i][1:]}: {info_list[i]} руб. Примечание: {info_list[i + 1]}\n'     
     res += f'Всего: {info_list[6]} руб.'
     return res
 
@@ -165,7 +210,6 @@ def send_one():
             message(':(',0)
         else:
             message(':)',0)
-    message('',1)
 
 def send_all():
     clear_terminal()
@@ -208,6 +252,7 @@ def main():
     while 1:
         clear_terminal()
         global overload
+        overload = max(0,db.check_fond())
         ch = gui.start_menu(overload)
 
         match ch:

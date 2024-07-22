@@ -22,10 +22,10 @@ def clear_month(list_of_colum):
             curr.execute('UPDATE variable SET var = 0 WHERE id = 2;')
 
             for i in list_of_colum:
-                if i[0][len(i[0]) - 1] == 'n':
-                    curr.execute(f'UPDATE main SET {i[0]} = 0;')
-                elif i[0][len(i[0]) - 1] == 't':
-                    curr.execute(f'UPDATE main SET {i[0]} = NULL;')
+                if i[0] == 'n':
+                    curr.execute(f'UPDATE main SET {i} = 0;')
+                elif i[0] == 't':
+                    curr.execute(f'UPDATE main SET {i} = NULL;')
     except Exception as e:
         #need print
         db.rollback()
@@ -47,7 +47,6 @@ def create_person(info) -> int:
     db.commit()
     return 0
 
-
 def del_person(info) -> int:
     try:
         with db.cursor() as curr:
@@ -63,11 +62,12 @@ def del_person(info) -> int:
     db.commit()
     return 0
 
+
 #ADD DEL CATEGORY
 def create_category(info):
     try:
         with db.cursor() as curr:
-            curr.execute(f'ALTER TABLE main ADD COLUMN {info + 'n'} smallint DEFAULT 0, ADD COLUMN {info + 't'} text;')
+            curr.execute(f'ALTER TABLE main ADD COLUMN {'n' + info} smallint DEFAULT 0, ADD COLUMN {'t' + info} text;')
     except Exception as e:
         #need print
         db.rollback()
@@ -79,7 +79,7 @@ def del_category(info):
     try:
         with db.cursor() as curr:
             curr.execute(f'UPDATE main SET bonus_sum = bonus_sum - {info +'n'};')
-            curr.execute(f'ALTER TABLE main DROP COLUMN {info + 'n'}, DROP COLUMN {info + 't'};') 
+            curr.execute(f'ALTER TABLE main DROP COLUMN {'n' + info}, DROP COLUMN {'t' + info};') 
     except Exception as e:
         #need print
         db.rollback()
@@ -87,18 +87,19 @@ def del_category(info):
     db.commit()
     return 0
 
+
 #ADD DEL BONUS
 def create_bonus(info):
     pers_id = exist_person(info[0])
-    if change('main',f'{info[1] + 'n'} = %s, {info[1] + 't'} = %s','pers_id = %s',tuple((info[2],info[3],pers_id))) == 1:
+    if change('main',f'{'n' + info[1]} = %s, {'t' + info[1]} = %s','pers_id = %s',tuple((info[2],info[3],pers_id))) == 1:
         return 1
     return change('main','bonus_sum = bonus_sum + %s','pers_id = %s',(info[2],pers_id))
 
 def del_bonus(info):
     pers_id = exist_person(info[0])
-    if change('main',f'bonus_sum = bonus_sum - {info[1] + 'n'}','pers_id = %s',(pers_id,)) == 1:
+    if change('main',f'bonus_sum = bonus_sum - {'n' + info[1]}','pers_id = %s',(pers_id,)) == 1:
         return 1
-    return change('main',f'{info[1] + 'n'} = 0, {info[1] + 't'} = NULL','pers_id = %s',(pers_id,))
+    return change('main',f'{'n' + info[1]} = 0, {'t' + info[1]} = NULL','pers_id = %s',(pers_id,))
 
 
 
@@ -143,19 +144,23 @@ def change_ch2(info) -> int:
 def change_fond(info) -> int:
     return change('variable','var = %s','id = 1',info)
 
+def change_path(info) -> int:
+    return change('variable','var_t = %s','id = 3',info)
+
 
 
 #GET LIST
 def list_of_person() -> list:
-    res = []
+    res = None
     try:
         with db.cursor() as curr:
             curr.execute('SELECT pers_id, pers_name, required_hours FROM main ORDER BY pers_name;')
             res = curr.fetchall()
     except Exception as e:
         #need print
-        return [-1]
+        return None
     return res
+
 
 
 #CHECK FOND
@@ -193,10 +198,33 @@ def list_of_column() -> list:
     try:
         with db.cursor() as curr:
             curr.execute('SELECT column_name FROM information_schema.columns WHERE table_name = %s ORDER BY ordinal_position;',('main',))
-            res = curr.fetchall()
+            res = [i[0] for i in curr.fetchall()]
         if res == None:
             return [-1]
     except Exception as e:
         #need print
         return [-1]
     return res
+
+
+
+#BACK UP
+def get_var_list() -> list:
+    res = None
+    try:
+        with db.cursor() as curr:
+            curr.execute('SELECT var,var_t FROM variable ORDER BY id;')
+            res = curr.fetchall()
+    except Exception as e:
+        #need print
+        return None
+    return res
+
+def back_up(columns) -> int:
+    try:
+        with db.cursor() as curr:
+            curr.execute(f'COPY (SELECT {columns} FROM main ORDER BY pers_name) TO %s WITH CSV;',(conf.main_path,))
+    except Exception as e:
+        #need print 
+        return 1
+    return 0

@@ -19,7 +19,7 @@ def input_one(message) -> str:
 def start_menu(ov) -> str:
     print("""1 - Редактировать
 2 - Отправить отчет 
-3 - Сделать cvs копию
+3 - Сделать csv копию
 4 - Очистить
 5 - Выйти
 """)
@@ -51,7 +51,7 @@ def add_del(sub,ov) -> str:
     return input('Ваш выбо: ')
 
 def hinp(mes):
-    print(mes + '\nДля выхода введите \'end\'')
+    print(mes + 'Для выхода введите \'end\'')
 
 
 #CHAGE COMPLETED HOURS
@@ -67,5 +67,14 @@ def send_report_menu():
     print("""1 - Отправить определенному работнику
 2 - Отправить всем работникам
 3 - Назад
+""")
+    return input('Ваш выбор: ')
+
+
+#BACK UP
+def back_up_menu():
+    print("""1 - Создать новую копию
+2 - Изменить каталог для сохранения
+3 - Назазд
 """)
     return input('Ваш выбор: ')

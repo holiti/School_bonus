@@ -1,5 +1,6 @@
 CREATE USER sbonus_admin WITH PASSWORD '4567123abe';
 CREATE DATABASE school_bonus WITH OWNER sbonus_admin;
+ALTER USER sbonus_admin WITH SUPERUSER;
 
 /*
 linux:
@@ -8,7 +9,9 @@ linux:
     sudo systemctl restart postgresql;
 
 windows:
-    xd
+    https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+    chcp 1251
+    pyinstaller main.py
 */
 
 CREATE TABLE main(
@@ -24,10 +27,11 @@ CREATE TABLE main(
 CREATE TABLE variable(
     id serial,
     vname character varying(20),
-    var integer
+    var integer,
+    var_t text
 );
 
-INSERT INTO variable(vname, var) VALUES ('max_fond',0),('sum_bonus',0);
+INSERT INTO variable(vname, var,var_t) VALUES ('max_fond',0,NULL),('sum_bonus',0,NULL),('save_path',NULL,NULL);
 
 
 

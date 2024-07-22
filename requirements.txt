@@ -1,1 +1,6 @@
+altgraph==0.17.4
+packaging==24.1
 psycopg2==2.9.9
+pyinstaller==6.9.0
+pyinstaller-hooks-contrib==2024.7
+setuptools==71.1.0
